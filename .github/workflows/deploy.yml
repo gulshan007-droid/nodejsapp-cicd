@@ -1,33 +1,63 @@
-script: |
-  set -e
+name: Deploy Node.js App to EC2
 
-  cd /var/www/express-app
+on:
+  push:
+    branches:
+      - main
 
-  echo "Current directory:"
-  pwd
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-  echo "Git status:"
-  git status
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  echo "Git remote:"
-  git remote -v
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
-  echo "Fetching latest code..."
-  git fetch origin
+      - name: Install Dependencies
+        run: npm install
 
-  echo "Resetting to origin/main..."
-  git reset --hard origin/main
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
 
-  echo "Latest commit:"
-  git log --oneline -3
+            cd /var/www/express-app
 
-  npm install
+            echo "Current directory:"
+            pwd
 
-  if pm2 describe express-app > /dev/null 2>&1; then
-    pm2 restart express-app
-  else
-    pm2 start index.js --name express-app
-  fi
+            echo "Git status:"
+            git status
 
-  pm2 save
-  pm2 list
+            echo "Git remote:"
+            git remote -v
+
+            echo "Fetching latest code..."
+            git fetch origin
+
+            echo "Resetting to origin/main..."
+            git reset --hard origin/main
+
+            echo "Latest commit:"
+            git log --oneline -3
+
+            npm install
+
+            if pm2 describe express-app > /dev/null 2>&1; then
+              pm2 restart express-app
+            else
+              pm2 start index.js --name express-app
+            fi
+
+            pm2 save
+            pm2 list
