@@ -1,15 +1,10 @@
-const http = require("http");
+const express = require("express");
 
-const server = http.createServer((req, res) => {
-  if (req.url === "/" && req.method === "GET") {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("Hello World ghhh");
-  } else {
-    res.writeHead(404);
-    res.end("Not Found");
-  }
+const server = express();
+
+server.get("/", (req, res) => {
+  return res.send("Hello World tyyuuui");
 });
-
 server.listen(4200, () => {
   console.log("Server running on port 4200");
 });
